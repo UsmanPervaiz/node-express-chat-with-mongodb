@@ -1,0 +1,19 @@
+{
+  "name": "express-chat-with-mongodb",
+  "version": "1.0.0",
+  "description": "Simple Node.js chat application with mongodb database.",
+  "main": "app/app.js",
+  "scripts": {
+    "start": "nodemon -e ejs,js,json --watch app"
+  },
+  "author": "Usman Pervaiz",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.2",
+    "mongodb": "^3.0.2",
+    "nodemon": "^1.14.12",
+    "reload": "^2.2.2",
+    "socket.io": "^2.0.4"
+  }
+}
