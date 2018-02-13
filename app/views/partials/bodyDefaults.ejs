@@ -23,18 +23,18 @@
 
 		//Set Default State:
 		let statusDefault = status.textContent;
+
 		let setStatus = function(s) {
 			status.textContent = s;
 			if(s !== statusDefault) {
 				let delay = setTimeout(function() {
 					setStatus(statusDefault);
-				}, 4000);
+				}, 3000);
 			}
 		}
 
 		//Connect to socket.io:
-		var socket = io.connect("http://localhost:4000");
-
+		var socket = io.connect();
 		//Check for connection:
 		if(socket !== undefined) {
 			console.log("Connected to socket...")
@@ -56,20 +56,29 @@
 			socket.on("status", function(data) {
 				//get message status:
 				setStatus((typeof data === "object") ? data.message : data);
-
 				if(data.clear) {
 					textarea.value = "";
 				}
 			});
 
 			textArea.addEventListener("keydown", function(e) {
-			
-				if(e.which === 13) {
+				if(e.which === 13 && event.shiftKey === false) {
 					socket.emit("input", {name:username.value, message:textarea.value})
 						e.preventDefault();
 				}
 			});
-		}
+
+			//Handle Chat Clear:
+			clearBtn.addEventListener("click", function(e) {
+				socket.emit("clear");
+			});
+
+			//Clear Chat Messages (This will clear all messages
+			//in database)
+			socket.on("cleared", function() {
+				messages.textContent = "";
+			});
+		};
 
 	})();
 </script>

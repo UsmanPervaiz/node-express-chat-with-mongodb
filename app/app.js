@@ -40,67 +40,44 @@ mongo.connect(url, function(err, db) {
 		connections.push(socket);
 		console.log("Currently connedted: %s ", connections.length)
 
-		// var myobj = [
-	 //    { name: 'Usman', message: 'Highway 71'},
-	 //    { name: 'Peter', message: 'Lowstreet 4'},
-	 //    { name: 'Amy', message: 'Apple st 652'},
-	 //    { name: 'Hannah', message: 'Mountain 21'},
-	 //    { name: 'Michael', message: 'Valley 345'},
-	 //    { name: 'Sandy', message: 'Ocean blvd 2'},
-	 //    { name: 'Betty', message: 'Green Grass 1'},
-	 //    { name: 'Richard', message: 'Sky st 331'},
-	 //    { name: 'Susan', message: 'One way 98'},
-	 //    { name: 'Vicky', message: 'Yellow Garden 2'},
-	 //    { name: 'Ben', message: 'Park Lane 38'},
-	 //    { name: 'William', message: 'Central st 954'},
-	 //    { name: 'Chuck', message: 'Main Road 989'},
-	 //    { name: 'Viola', message: 'Sideway 1633'}
-  //   ];
-
-    
-	 //    chatCollection.insertMany(myobj, function(err, result) {
-	 //    	console.log("Inserted Documents")
-	 //    })
-
 		socket.on("disconnect", function(data) {
 			connections.splice(connections.indexOf(socket, 1));
 		})
 
 		//Create function to send status.
-		sendStatus = function(s) {
-			socket.emit("status", s);
-		}
+		// sendStatus = function(s) {
+		// 	socket.emit("status", s);
+		// }
 
 		//Get chats from mongo collection
 		chatCollection.find().limit(100).sort({_id:1}).toArray(function(err, res) {
-			if(err) {
-				console.log(err)
-			} 
+			if(err) throw err;
 
 			//Emit the messages
 			socket.emit("output", res);
+		});
 
-			//Handle input events.
-			socket.on("input", function(data) {
-				let name = data.name;
-				let message = data.message;
+		//Handle input events.
+		socket.on("input", function(data) {
+			let name = data.name;
+			let message = data.message;
 
-				//check for name and message.
-				if(name === "" || message === "") {
-					sendStatus("Please enter a name and a message.");
-				} else {
-					//Insert message in the database.
-					chatCollection.insert({name: name, message: message}, function() {
-						io.emit("output", [data]);
-
-						//Send status object.
-						sendStatus({
-							message: "Message sent!",
-							clear: true
-						});
-					});
-				}
-			});
+			//check for name and message.
+			if(name === "" || message === "") {
+				// sendStatus("Please enter a name and a message.");
+			   socket.emit("status", "Please enter a name and a message.");
+            } else {
+			//Insert message in the database.
+				chatCollection.insert({name: name, message: message}, function() {
+					io.emit("output", [data]);
+                    socket.emit("status", {message: "Message sent!", clear: true});
+					// sendStatus({
+					// 	message: "Message sent!",
+					// 	clear: true
+					// })
+				})
+			}
+		});
 
 			//Handle clear
 			socket.on("clear", function(data) {
@@ -108,9 +85,8 @@ mongo.connect(url, function(err, db) {
 				chatCollection.remove({}, function() {
 					//Emit cleared
 					socket.emit("cleared");
-				});
+				})
 			});
-		});
-	})
-})
+	});
+});
 
